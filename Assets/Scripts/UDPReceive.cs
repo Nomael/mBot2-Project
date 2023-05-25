@@ -41,6 +41,12 @@ public class UDPReceive : MonoBehaviour
     public string allReceivedUDPPackets = ""; // clean up this from time to time!
 
 
+    //Movement
+    public int speed = 30;
+    public float smoothSpeed = 5f;
+    public GameObject WheelLeft;
+    public GameObject WheelRight;
+
     // start from shell
     private static void Main()
     {
@@ -61,6 +67,50 @@ public class UDPReceive : MonoBehaviour
         init();
     }
 
+    // Movement
+    void Update()
+    {
+        int wheelSpeed = speed * 20;
+        if (lastReceivedUDPPacket == "Forward")
+        {
+            transform.Translate(Vector3.forward * 1 * speed * Time.deltaTime);
+            WheelLeft.transform.Rotate(Vector3.right * 1 * wheelSpeed * Time.deltaTime);
+            WheelRight.transform.Rotate(Vector3.right * 1 * wheelSpeed * Time.deltaTime);
+        }
+        else if (lastReceivedUDPPacket == "Backward")
+        {
+            transform.Translate(Vector3.forward * (-1) * speed * Time.deltaTime);
+            WheelLeft.transform.Rotate(Vector3.right * (-1) * wheelSpeed * Time.deltaTime);
+            WheelRight.transform.Rotate(Vector3.right * (-1) * wheelSpeed * Time.deltaTime);
+        }
+
+
+        if (lastReceivedUDPPacket == "Left" || lastReceivedUDPPacket == "Right")
+        {
+            if (lastReceivedUDPPacket == "Left")
+            {
+                transform.Rotate(Vector3.Lerp(transform.eulerAngles, new Vector3(0, -1 , 0), smoothSpeed), Space.World);
+            }
+            else
+            {
+                transform.Rotate(Vector3.Lerp(transform.eulerAngles, new Vector3(0, 1, 0), smoothSpeed), Space.World);
+            }
+
+            WheelLeft.transform.Rotate(Vector3.left * (-1) * wheelSpeed * Time.deltaTime);
+            WheelRight.transform.Rotate(Vector3.right * (-1) * wheelSpeed * Time.deltaTime);
+        }
+
+        if (Input.GetKey(KeyCode.X))
+        {
+            lastReceivedUDPPacket = "STOP";
+            allReceivedUDPPackets = " ";
+        }
+
+
+
+    }
+
+
     // OnGUI
     void OnGUI()
     {
@@ -70,7 +120,7 @@ public class UDPReceive : MonoBehaviour
         GUI.Box(rectObj, "# UDPReceive\n127.0.0.1 " + port + " #\n"
                     + "shell> nc -u 127.0.0.1 : " + port + " \n"
                     + "\nLast Packet: \n" + lastReceivedUDPPacket
-                    + "\n\nAll Messages: \n" + allReceivedUDPPackets
+                    + "\n\nAll Messages: " + allReceivedUDPPackets // + "\n\nAll Messages: " + allReceivedUDPPackets
                 , style);
     }
 
