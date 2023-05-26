@@ -22,6 +22,7 @@ using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 
 public class UDPReceive : MonoBehaviour
 {
@@ -47,6 +48,11 @@ public class UDPReceive : MonoBehaviour
     public GameObject WheelLeft;
     public GameObject WheelRight;
 
+    // Hindernis
+    public float timer = 2;
+    public int zaeler = 0;
+    public GameObject hindernisPrefab;
+
     // start from shell
     private static void Main()
     {
@@ -67,10 +73,65 @@ public class UDPReceive : MonoBehaviour
         init();
     }
 
+    bool TimerFinished()
+    {
+        timer -= Time.deltaTime;
+
+        if (timer <= 0)
+        {
+            timer = 2;
+
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     // Movement
     void Update()
     {
+        Vector3 spawnPosition;
+        GameObject hindernis;
         int wheelSpeed = speed * 20;
+
+        if (lastReceivedUDPPacket == "Hindernis")
+        {
+            /*switch (zaeler)
+            {
+                case 0:
+                    spawnPosition = new Vector3(transform.position.x, transform.position.y, transform.position.z + 20);
+                    Instantiate(hindernisPrefab, spawnPosition, hindernisPrefab.transform.rotation);
+                    break;
+
+                case 1:
+                    spawnPosition = new Vector3(transform.position.x - 20, transform.position.y, transform.position.z);
+                    Instantiate(hindernisPrefab, spawnPosition, hindernisPrefab.transform.rotation);
+                    break;
+
+                case 2:
+                    spawnPosition = new Vector3(transform.position.x, transform.position.y, transform.position.z - 20);
+                    Instantiate(hindernisPrefab, spawnPosition, hindernisPrefab.transform.rotation);
+                    break;
+
+                case 3:
+                    spawnPosition = new Vector3(transform.position.x + 20, transform.position.y, transform.position.z);
+                    Instantiate(hindernisPrefab, spawnPosition, hindernisPrefab.transform.rotation);
+                    zaeler = 0;
+                    break;
+
+                default:
+                    break;
+            }*/
+            //zaeler++;
+
+            spawnPosition = new Vector3(transform.position.x, transform.position.y, transform.position.z);
+            hindernis = Instantiate(hindernisPrefab, spawnPosition, transform.rotation);
+            hindernis.transform.Translate(new Vector3(0,0,20));
+
+
+        }
         if (lastReceivedUDPPacket == "Forward")
         {
             transform.Translate(Vector3.forward * 1 * speed * Time.deltaTime);
@@ -89,11 +150,11 @@ public class UDPReceive : MonoBehaviour
         {
             if (lastReceivedUDPPacket == "Left")
             {
-                transform.Rotate(Vector3.Lerp(transform.eulerAngles, new Vector3(0, -1 , 0), smoothSpeed), Space.World);
+                transform.Rotate(Vector3.Lerp(transform.eulerAngles, new Vector3(0, -3, 0), smoothSpeed), Space.World);
             }
             else
             {
-                transform.Rotate(Vector3.Lerp(transform.eulerAngles, new Vector3(0, 1, 0), smoothSpeed), Space.World);
+                transform.Rotate(Vector3.Lerp(transform.eulerAngles, new Vector3(0, 3, 0), smoothSpeed), Space.World);
             }
 
             WheelLeft.transform.Rotate(Vector3.left * (-1) * wheelSpeed * Time.deltaTime);
@@ -107,7 +168,7 @@ public class UDPReceive : MonoBehaviour
         }
 
 
-
+        //lastReceivedUDPPacket = "";
     }
 
 
@@ -119,6 +180,7 @@ public class UDPReceive : MonoBehaviour
         style.alignment = TextAnchor.UpperLeft;
         GUI.Box(rectObj, "# UDPReceive\n127.0.0.1 " + port + " #\n"
                     + "shell> nc -u 127.0.0.1 : " + port + " \n"
+                    + "Zähler : " + zaeler + " \n"
                     + "\nLast Packet: \n" + lastReceivedUDPPacket
                     + "\n\nAll Messages: " + allReceivedUDPPackets // + "\n\nAll Messages: " + allReceivedUDPPackets
                 , style);
@@ -131,7 +193,7 @@ public class UDPReceive : MonoBehaviour
         print("UDPSend.init()");
 
         // define port
-        port = 5501;
+        port = 5505;
 
         // status
         print("Sending to 127.0.0.1 : " + port);
